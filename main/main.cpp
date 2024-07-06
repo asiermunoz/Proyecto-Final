@@ -865,5 +865,3 @@ int main() {
         system("pause");
     }
 };
-
-/*hola soy gay*/
