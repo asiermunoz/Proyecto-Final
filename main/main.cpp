@@ -4,7 +4,6 @@ Mikel Munoz 31307510
 Samuel Sangroni
 */
 
-
 #include <iostream>
 #include <string>
 #include<string.h>
@@ -41,7 +40,7 @@ struct inventario {
 };
 
 //*******************************************************************************************************
-//FUNCIONES DE MANTENIMINETO DE PRODUCTOS
+//FUNCIONES DE MANTENIMINETO DE PRODUCTO
 
 int validar_codigo_productos(producto* p, string x) {
     producto* ax = p;
