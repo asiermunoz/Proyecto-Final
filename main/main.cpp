@@ -114,7 +114,7 @@ void abrir_productos(producto** p) {
     }
 
     fclose(archivo);
-}
+};
 void guardar_productos(producto* p) {
     producto* ax = p;
     FILE* archivo;
@@ -510,13 +510,23 @@ void modificar_direccion_sucursales(sucursal** y, string x, string n) {
 
 //FUNCIONES DE INVENTARIO
 
-void abrir_inventario_lista(inventario** p, sucursal** y) {
-    abrir_sucursales(y);
-    sucursal* ax = *y;
-    while (ax) {
-        (*p)->codigo = ax->codigo;
-        (*p)->nombre = ax->nombre;
-        ax = ax->prox;
+void insertar_sucursales_en_inventario(inventario** p, string c, string n) {
+    inventario* t = new inventario;
+    //validar codigo de inventario
+    t->codigo = c;
+    t->nombre = n;
+    t->sig = *p;
+    *p = t;
+}
+void abrir_sucursales_en_inventario(inventario** p, sucursal* y) {
+    string c;
+    string n;
+    inventario* ax = *p;
+    while (y) {
+        c = y->codigo;
+        n = y->nombre;
+        insertar_sucursales_en_inventario(&ax, c, n);
+        y = y->prox;
     }
 }
 void mostrar_sucursales_inventario(inventario* p) {
@@ -545,9 +555,10 @@ void mantenimiento_sucursales_inventario() {
     inventario* p = NULL;
     sucursal* y = NULL;
     int op = -1;
+    //abrir_sucursales(&y);
+    //abrir_sucursales_en_inventario(&p, y);
     while (op != 0) {
         int m = -1;
-        //abrir_inventario_lista(&p, &y);
         system("cls");
         cout << "\t----------------------------------------------------------------\n";
         cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
@@ -555,7 +566,8 @@ void mantenimiento_sucursales_inventario() {
         cout << "\t\t\t1.2.7 Mantenimiento de sucursales/inventario\n";
         cout << "\t----------------------------------------------------------------\n\n\n";
         cout << "Seleccione primero una de las siguientes sucursales para poder acceder a su inventario: \n";
-        mostrar_sucursales_inventario(p);
+        p->codigo = "hola";
+        cout << p->codigo;
         cout << "\n";
         cout << "1.2.7.1 Seleccionar sucursal \n";
         cout << "0. VOLVER MENU ANTERIOR \n";
