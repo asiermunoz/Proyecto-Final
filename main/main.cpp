@@ -547,7 +547,7 @@ void mantenimiento_sucursales_inventario() {
     int op = -1;
     while (op != 0) {
         int m = -1;
-        abrir_inventario_lista(&p, &y);
+        //abrir_inventario_lista(&p, &y);
         system("cls");
         cout << "\t----------------------------------------------------------------\n";
         cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
@@ -555,7 +555,7 @@ void mantenimiento_sucursales_inventario() {
         cout << "\t\t\t1.2.7 Mantenimiento de sucursales/inventario\n";
         cout << "\t----------------------------------------------------------------\n\n\n";
         cout << "Seleccione primero una de las siguientes sucursales para poder acceder a su inventario: \n";
-        //mostrar_sucursales_inventario(p);
+        mostrar_sucursales_inventario(p);
         cout << "\n";
         cout << "1.2.7.1 Seleccionar sucursal \n";
         cout << "0. VOLVER MENU ANTERIOR \n";
