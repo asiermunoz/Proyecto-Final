@@ -1022,6 +1022,8 @@ void mantenimiento_sucursales() {
 //*************************************************************************************************************************************
 
 
+
+
 //PERSONAS
 //*************************************************************************************************************************************
 int validar_cedula_personas(personas* p, string x) {
@@ -1215,7 +1217,6 @@ void modificar_ciudad(personas** y, string x, string ciudad) {
         }
     }
 }
-
 // MENU DE MANTENIMIENTO PERSONAS
 void mantenimiento_personas() {
     int op = -1;
@@ -1406,6 +1407,9 @@ void mantenimiento_personas() {
 
     }
 }
+
+
+
 //*************************************************************************************************************************************
 
 
@@ -1413,7 +1417,11 @@ void mantenimiento_personas() {
 
 
 
-// SUB MENU -------------------------------------------------------------------------------------------
+
+
+//*************************************************************************************************************************************
+
+// SUB MENUS -------------------------------------------------------------------------------------------
 void mantenimiento() {
     int op = -1;
     while (op != 0) {
@@ -1446,8 +1454,207 @@ void mantenimiento() {
         }
     }
 };
-void facturacion() {}
-void reportes() {}
+void facturacion_submenu(char tienda[256], char persona[256]) {
+    int op = -1;
+    while (op != 0) {
+        system("cls");
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\tTIENDA" << "[" << tienda << "]\t\t\t\t\t" << "PERSONA" << "[" << persona << "]\t\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\t2. Facturacion\n";
+        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "2.1. Agregar producto\n";
+        cout << "2.2. Mostrar factura\n";
+        cout << "2.3. Eliminar factura\n";
+        cout << "2.4. Mostrar resumen de facturas\n\n";
+        cout << "0. VOLVER MENU ANTERIOR\n\n";
+        cout << "Elige una opcion: ";
+        cin >> op;
+
+
+
+        switch (op) {
+        case 1:
+            break;
+
+        case 2:
+            break;
+
+        case 3:
+            break;
+
+        case 4:
+            break;
+        }
+    }
+};
+void facturacion() {
+    int op = -1;
+    char tienda[256], persona[256];
+    while (op != 0) {
+        system("cls");
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\t2. Facturacion\n";
+        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "Debde de seleccionar las dos opciones para proceder al siguiente menu\n";
+        cout << "2.1. Seleccionar tienda\n";
+        cout << "2.2. Seleccionar cliente\n"; 
+        cout << "2.3. Proceder\n\n";
+        cout << "0. VOLVER MENU ANTERIOR\n\n";
+        cout << "Elige una opcion: ";
+        cin >> op;
+
+
+
+        switch (op) {
+        case 1:
+            //valid entry de la tienda
+            break;
+
+        case 2:
+            //valid entry de la persona
+            break;
+
+        case 3:
+            facturacion_submenu(tienda, persona);
+            break;
+        }
+    }
+};
+void submenu_de_reportes_clientes(char cedula[256]) {
+    int op = -1;
+    while (op != 0) {
+        system("cls");
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\t3.1 Reportes del cliente\t" << "[" << cedula << "]\n";
+        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "3.1.1 Mostrar el resumen de todas sus facturas \n";
+        cout << "3.1.2 Mostrar el resumen de los productos adquiridos \n";
+        cout << "3.1.3 Ingresar cedula del cliente \n\n";
+        cout << "0. VOLVER MENU ANTERIOR\n\n";
+        cout << "Elige una opcion: ";
+        cin >> op;
+
+        switch (op) {
+        case 1:
+            break;
+
+        case 2:
+            break;
+
+        case 3:
+            break;
+        }
+    }
+}
+void submenu_de_reportes_tienda(char tienda[256]) {
+    int op = -1;
+    while (op != 0) {
+        system("cls");
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\t3.2 Reportes de la tienda\t\t" << "[" << tienda << "]\n";
+        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "3.2.1 Mostrar total de unidades vendidas \n";
+        cout << "3.2.2 Mostrar total de unidades en existencia \n";
+        cout << "3.2.3 Mostrar resumen de cliente en una fecha \n\n";
+        cout << "0. VOLVER MENU ANTERIOR\n\n";
+        cout << "Elige una opcion: ";
+        cin >> op;
+
+        switch (op) {
+        case 1:
+            break;
+
+        case 2:
+            break;
+
+        case 3:
+            break;
+        }
+    }
+}
+void submenu_de_reportes_mercadeo() {
+    int op = -1;
+    while (op != 0) {
+        system("cls");
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\t3.3 Reportes (mercadeo)\t\t\n";
+        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "3.3.1 Total de ventas por codigo del producto \n";
+        cout << "3.3.2 Total de ventas por codigo de la tienda \n";
+        cout << "3.3.3 Total de cantidad comprada por cada cliente \n";
+        cout << "3.3.4 Monto total de cada cliente\n";
+        cout << "3.3.5 Total de ingresos de cada tienda \n\n";
+        cout << "0. VOLVER MENU ANTERIOR\n\n";
+        cout << "Elige una opcion: ";
+        cin >> op;
+
+        switch (op) {
+        case 1:
+            break;
+
+        case 2:
+            break;
+
+        case 3:
+            break;
+
+        case 4:
+            break;
+
+        case 5:
+            break;
+        }
+    }
+}
+void reportes() {
+    int op = -1;
+    char cedula[256], tienda[256];
+    while (op != 0) {
+        system("cls");
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\t3. Reportes\n";
+        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "3.1. Reportes de cliente \n";
+        cout << "3.2. Reportes de tienda \n";
+        cout << "3.3. Mercadeo \n\n";
+        cout << "0. VOLVER MENU ANTERIOR\n\n";
+        cout << "Elige una opcion: ";
+        cin >> op;
+
+
+
+        switch (op) {
+        case 1:
+            cout << "Ingresa la cedula del cliente: "; cin >> cedula;
+            // validar si la cedula del cliente existe, de ser asi se abre este menu:
+            submenu_de_reportes_clientes(cedula);
+            break;
+
+        case 2:
+            cout << "Ingresa el codigo de la tienda: "; cin >> tienda;
+            // validar si el codigo de la tienda existe, de ser asi se abre este menu:
+            submenu_de_reportes_tienda(tienda);
+            break;
+
+        case 3:
+            submenu_de_reportes_mercadeo();
+            break;
+        }
+    }
+}
 
 //MAIN ------------------------------------------------------------------------------------------------
 int main() {
