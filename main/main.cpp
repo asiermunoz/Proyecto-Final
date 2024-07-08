@@ -38,12 +38,17 @@ struct inventario {
     stock* aba;
     inventario* sig;
 };
+struct personas {
+    string cedula;
+    string nombre;
+    personas* prox;
+};
 
 
 
-//*************************************************************************************************************************************
+
 //FUNCIONES DE MANTENIMINETO DE PRODUCTO
-
+//*************************************************************************************************************************************
 int validar_codigo_productos(producto* p, string x) {
     producto* ax = p;
     while (ax) {
@@ -182,7 +187,6 @@ void modificar_descripcion_productos(producto** y, string x, string n) {
         }
     }
 }
-
 // MENU DE MANTENIMIENTO PRODUCTOS
 void mantenimiento_productos() {
     int op = -1;
@@ -305,12 +309,14 @@ void mantenimiento_productos() {
 
     }
 }
-
 //*************************************************************************************************************************************
 
 
 
+
+
 //FUNCIONES DE MANTENIMIENTO DE SUCURSALES
+//*************************************************************************************************************************************
 int validar_codigo_sucursales(sucursal* p, string x) {
     sucursal* ax = p;
     while (ax) {
@@ -510,8 +516,12 @@ void modificar_direccion_sucursales(sucursal** y, string x, string n) {
         }
     }
 }
+//*************************************************************************************************************************************
+
+
 
 //FUNCIONES DE INVENTARIO
+//*************************************************************************************************************************************
 int validar_codigo_inventario(inventario* p, string x) {
     while (p) {
         if (p->codigo == x) {
@@ -524,11 +534,12 @@ int validar_codigo_inventario(inventario* p, string x) {
 int validar_codigo_producto_en_stock(inventario* p,string a, string x) {
     // a codigo de sucursal
     // x codigo de producto a buscar
+    stock* ax = NULL;
     int c = 0;
     while (p) {
         if (p->codigo == a) {
-            stock* ax = p->aba;
-            c = 1
+            ax = p->aba;
+            c = 1;
         }
         p = p->sig;
     }
@@ -562,6 +573,99 @@ void crear_archivo_producto(string y, string a, string b, string c, string d) {
     fclose(archivo);
 }
 
+
+//insertar producto nuevo en el archivo
+void producto_nuevo_archivo(string nombre, string a, string b, string c, string d) {
+    FILE* archivo;
+    char* x = convertir_string_a_char_puntero(nombre);
+    strcat(x, ".txt");
+    archivo = fopen(x, "a");
+    if (!archivo)
+    {
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
+
+    }
+        fprintf(archivo, "%s\n", a.c_str());
+        fprintf(archivo, "%s\n", b.c_str());
+        fprintf(archivo, "%s\n", c.c_str());
+        fprintf(archivo, "%s\n", d.c_str());
+        
+    
+    fclose(archivo);
+}
+
+
+//inserta el stock en cada aba
+void insertar_stock_en_sucursal(inventario** p, string codigo_sucursal, string codigo, string existencia, string min, string precio) {
+    inventario* ax = *p;
+    stock* m;
+    stock* t = new stock;
+    t->codigo = codigo;
+    t->cantidad = existencia;
+    t->min = min;
+    t->precio = precio;
+
+    while (ax->codigo != codigo_sucursal) { ax = ax->sig; }
+    if (ax->codigo == codigo_sucursal) {
+        if (ax->aba == NULL) {
+            ax->aba = t;
+            t->prox = NULL;
+        }
+        else {
+            m = ax->aba;
+            while (m) {
+                if (m->prox == NULL) {
+                    m->prox = t;
+                    t->prox = NULL;
+                }
+                m = m->prox;
+            }
+        }
+    }
+}
+
+
+//lee archivo de nombre codigo sucursal.txt y la inserta en la multilista
+void abrir_archivo_stock(inventario** p, string codigo) {
+#pragma warning(disable : 4996);
+    FILE* archivo;
+    char* x = convertir_string_a_char_puntero(codigo);
+    strcat(x, ".txt");
+    archivo = fopen(x, "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+
+    char linea1[256], linea2[256], linea3[256], linea4[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL && fgets(linea3, sizeof(linea3), archivo) != NULL &&
+        fgets(linea4, sizeof(linea4), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+        linea3[strcspn(linea3, "\n")] = '\0';
+        linea4[strcspn(linea4, "\n")] = '\0';
+        string linea1String(linea1);
+        string linea2String(linea2);
+        string linea3String(linea3);
+        string linea4String(linea4);
+
+        //insete el stock en la multilista inventario
+        insertar_stock_en_sucursal(p, codigo, linea1String, linea2String, linea3String, linea4String);
+    }
+
+    fclose(archivo);
+}
+
+
+//mete todos los productos a sus respectivas sucursales
+void insertar_stock_todos(inventario** p) {
+    inventario* ax = *p;
+    string codigo;
+    while (ax) {
+        codigo = ax->codigo;
+        abrir_archivo_stock(p, codigo);
+        ax = ax->sig;
+    }
+}
 
 //mostrar solo codigo de sucursales
 void mostrar_sucursales_inventario(inventario* p) {
@@ -626,9 +730,15 @@ void abrir_inventario(inventario** p) {
 
 }
 
+// eliminar producto del stock
+//*************************************************************************************************************************************
+
+
+
 // MENU DE MANTENIMIENTO SUCURSALES
+//*************************************************************************************************************************************
 void mantenimiento_sucursales_inventario() {
-    string a, b, c, d;
+    string a, b, c, d, e;
     char* z;
     inventario* p = NULL;
     sucursal* y = NULL;
@@ -681,6 +791,7 @@ void mantenimiento_sucursales_inventario() {
                     cout << "1.2.7.1.3 modificar Inventario \n";
                     cout << "1.2.7.1.4 Mostrar Productos \n";
                     cout << "0. VOLVER MENU ANTERIOR \n";
+
                     cout << "Elige una opcion: ";
                     cin >> m;
                     cin.ignore();
@@ -689,13 +800,20 @@ void mantenimiento_sucursales_inventario() {
                     case 1:
                         cout << "ingrese codigo del producto: ";
                         getline(cin, b);
-                        if (!validar_codigo_producto_en_stock(p, a, b)) {
+
+                        cout << "ingrese existencia del producto: ";
+                        getline(cin, c);
+                        cout << "ingrese la existencia minima del producto: ";
+                        getline(cin, d);
+                        cout << "ingrese el precio del producto: ";
+                        getline(cin, e);
+                        producto_nuevo_archivo(a, b, c, d, e);
+                        /*if (!validar_codigo_producto_en_stock(p, a, b)) { //NO FUNCIONA
 
                         }
                         else {
                             cout << "ese producto ya existe" << "\n\n";
-                        }
-                        
+                        }*/
                         break;
                     case 2:
                         cout << "ingrese el codigo de producto a eliminar: ";
@@ -897,9 +1015,223 @@ void mantenimiento_sucursales() {
         system("pause");
     }
 }
+//*************************************************************************************************************************************
 
 
+//PERSONAS
+//*************************************************************************************************************************************
+int validar_cedula_personas(personas* p, string x) {
+    personas* ax = p;
+    while (ax) {
+        if (ax->cedula == x)
+            return 1;
+        ax = ax->prox;
+    }
+    return 0;
+}
+void insertar_persona(personas** y, string c, string n) {
+    personas* t = new personas;
+    if (!validar_cedula_personas(*y, c)) {
+        t->cedula = c;
+        t->nombre = n;
+        
+        t->prox = *y;
+        *y = t;
+    }
+};
+void mostrar_lista_personas(personas* y) {
+    personas* t = y;
+    cout << "\n\n\t\Personas";
+    cout << "\n------------------------------------------------------\n";
+    cout << "cedula\t\t\tnombre";
+    cout << "\n------------------------------------------------------\n";
+    while (t) {
+        cout << t->cedula << "\t\t" << t->nombre << "\n";
+        t = t->prox;
+    }
+    cout << "\n-------------------------------------------------------\n";
+}
+void eliminar_persona(personas** y, string x) {
+    personas* ax = *y, * h = ax;
+    while (ax) {
+        if ((*y)->cedula == x) {
+            *y = ax->prox;
+            delete ax;
+            break;
+        }
+        if (ax->cedula == x) {
+            h->prox = ax->prox;
+            delete ax;
+            break;
+        }
+        else {
+            h = ax;
+            ax = ax->prox;
+        }
+    }
+}
+void abrir_personas(personas** p) {
+#pragma warning(disable : 4996);
+    FILE* archivo;
+    archivo = fopen("Personas.txt", "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
 
+    char linea1[256], linea2[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+
+        string linea1String(linea1);
+        string linea2String(linea2);
+
+        insertar_persona(p, linea1String, linea2String);
+
+    }
+
+    fclose(archivo);
+};
+void guardar_personas(personas* p) {
+    personas* ax = p;
+    FILE* archivo;
+    archivo = fopen("Personas.txt", "w");
+    if (!archivo)
+    {
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
+
+    }
+    fflush(archivo);
+    while (ax) {
+        fprintf(archivo, "%s\n", ax->cedula.c_str());
+        fprintf(archivo, "%s\n", ax->nombre.c_str());
+        
+        ax = ax->prox;
+    }
+    fclose(archivo);
+}
+int consultar_cedula(personas* y, string x) {
+    personas* ax = y;
+    while (ax) {
+        if (ax->cedula == x)
+            return 1;
+        else
+            ax = ax->prox;
+    }
+    return 0;
+}
+int consultar_nombre(personas* y, string x) {
+    personas* ax = y;
+    while (ax) {
+        if (ax->nombre == x)
+            return 1;
+        else
+            ax = ax->prox;
+    }
+    return 0;
+}
+void modificar_nombre(personas** y, string x, string n) {
+    personas* ax = *y;
+    while (ax) {
+        if (ax->cedula == x) {
+            ax->nombre = n;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
+
+// MENU DE MANTENIMIENTO PERSONAS
+void mantenimiento_personas() {
+    int op = -1;
+    string x, y, z, a;
+    personas* p = NULL;
+    abrir_personas(&p);
+    while (op != 0) {
+        int m = -1;
+        system("cls");
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\t\t1.1. Mantenimiento de Personas\n";
+        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "1.1.1 Agregar Personas \n";
+        cout << "1.1.2 Modificar Persona \n";
+        cout << "1.1.3 Eliminar Persona \n";
+        cout << "1.1.4 Consulta por cedula \n";
+        cout << "1.1.5 Consulta por nombre \n";
+        cout << "1.1.6 Mostrar todos las personas registradas \n";
+        cout << "0. VOLVER MENU ANTERIOR\n";
+        cout << "Elige una opcion: ";
+        cin >> op;
+        cin.ignore();
+
+        switch (op) {
+        case 1:
+            cout << "ingrese el cedula: ";
+            getline(cin, x);
+            if (validar_cedula_personas(p, x) == 0) {
+                cout << "ingrese el nombre y Apellido (Xxxx Xxxx): ";
+                getline(cin, y);
+                insertar_persona(&p, x, y);
+                guardar_personas(p);
+            }
+            else { cout << "la cedula ya existe \n\n"; }
+            break;
+        case 2:
+            cout << "ingrese el cedula: ";
+            getline(cin, x);
+            if (validar_cedula_personas(p, x) == 1) {
+                cout << "ingrese el nuevo nombre: ";
+                getline(cin, y);
+                modificar_nombre(&p, x, y);
+                guardar_personas(p);
+            }
+            else { cout << "la cedula no existe \n\n"; }
+            break;
+        case 3:
+            cout << "ingrese la cedula a eliminar : ";
+            getline(cin, x);
+            if (validar_cedula_personas(p, x) == 1) {
+                eliminar_persona(&p, x);
+                guardar_personas(p);
+
+            }
+            else { cout << "la cedula no existe \n\n"; }
+
+
+            break;
+        case 4:
+            cout << "ingrese la cedula a buscar : ";
+            getline(cin, x);
+            if (consultar_cedula(p, x) == 1) {
+                cout << "la cedula " << x << " si se encuentra\n\n";
+            }
+            else {
+                cout << "no se encontro nada.\n\n";
+            }
+            break;
+        case 5:
+            cout << "ingrese el nombre a buscar a buscar : ";
+            getline(cin, x);
+            if (consultar_nombre(p, x)) {
+                cout << "la descripcion " << x << " si se encuentra\n\n";
+            }
+            else {
+                cout << "no se encontro nada.\n\n";
+            }
+            break;
+        case 6:
+            mostrar_lista_personas(p);
+            guardar_personas(p);
+            break;
+        }
+        system("pause");
+
+    }
+}
 //*************************************************************************************************************************************
 
 
@@ -935,6 +1267,7 @@ void mantenimiento() {
             mantenimiento_sucursales();
             break;
         case 3:
+            mantenimiento_personas();
             break;
         }
     }
