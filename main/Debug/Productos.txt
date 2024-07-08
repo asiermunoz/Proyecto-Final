@@ -1,21 +1,21 @@
-1101
-cafe
-Jose C.A 1kg
-1137
-azucar morena
-Letisoy C.A 1kg
-378
-complejo vitaminico
-Lab Nacional 500 comprimidos
-254
-acetaminophen
-lab nacional 0.75mg
-137
-azucar morena
-Artica 1kg
-112
-Margarina 
-Leguminosa S.A 500gr
 101
 cafe
 Maria Cafe C.A 1kg
+112
+Margarina 
+Leguminosa S.A 500gr
+137
+azucar morena
+Artica 1kg
+254
+acetaminophen
+lab nacional 0.75mg
+378
+complejo vitaminico
+Lab Nacional 500 comprimidos
+1137
+azucar morena
+Letisoy C.A 1kg
+1101
+cafe
+Jose C.A 1kg

@@ -39,7 +39,9 @@ struct inventario {
     inventario* sig;
 };
 
-//*******************************************************************************************************
+
+
+//*************************************************************************************************************************************
 //FUNCIONES DE MANTENIMINETO DE PRODUCTO
 
 int validar_codigo_productos(producto* p, string x) {
@@ -304,7 +306,8 @@ void mantenimiento_productos() {
     }
 }
 
-//*******************************************************************************************************
+//*************************************************************************************************************************************
+
 
 
 //FUNCIONES DE MANTENIMIENTO DE SUCURSALES
@@ -321,13 +324,13 @@ void insertar_sucursal(sucursal** y, string a, string b, string c, string d, str
     sucursal* t = new sucursal;
     if (!validar_codigo_sucursales(*y, a))
         t->codigo = a;
-    t->nombre = b;
-    t->ciudad = c;
-    t->estado = d;
-    t->telefono = e;
-    t->direccion = f;
-    t->prox = *y;
-    *y = t;
+        t->nombre = b;
+        t->ciudad = c;
+        t->estado = d;
+        t->telefono = e;
+        t->direccion = f;
+        t->prox = *y;
+        *y = t;
 }
 void mostrar_sucursales(sucursal* y) {
     sucursal* t = y;
@@ -509,32 +512,6 @@ void modificar_direccion_sucursales(sucursal** y, string x, string n) {
 }
 
 //FUNCIONES DE INVENTARIO
-
-void insertar_sucursales_en_inventario(inventario** p, string c, string n) {
-    inventario* t = new inventario;
-    //validar codigo de inventario
-    t->codigo = c;
-    t->nombre = n;
-    t->sig = *p;
-    *p = t;
-}
-void abrir_sucursales_en_inventario(inventario** p, sucursal* y) {
-    string c;
-    string n;
-    inventario* ax = *p;
-    while (y) {
-        c = y->codigo;
-        n = y->nombre;
-        insertar_sucursales_en_inventario(&ax, c, n);
-        y = y->prox;
-    }
-}
-void mostrar_sucursales_inventario(inventario* p) {
-    while (p) {
-        cout << p->codigo;
-        p = p->sig;
-    }
-}
 void crear_archivo_producto(char* x, string a, string b, string c, string d) {
     FILE* archivo;
     strcat(x, ".txt");
@@ -549,14 +526,80 @@ void crear_archivo_producto(char* x, string a, string b, string c, string d) {
     fclose(archivo);
 }
 
+//mostrar solo codigo de sucursales
+void mostrar_sucursales_inventario(inventario* p) {
+    while (p) {
+        cout << p->codigo << endl;
+        p = p->sig;
+    }
+}
+
+// recibe lista de sucursales y agrega a otro archivo codigo y nombre (inventario)
+void insertar_codigos_en_archivo_inventario(sucursal* y) {
+    sucursal* ax = y;
+    FILE* archivo;
+    archivo = fopen("codigos sucursales en inventario.txt", "w");
+    if (!archivo){
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
+    }
+
+    fflush(archivo);
+    while (ax) {
+        fprintf(archivo, "%s\n", ax->codigo.c_str());
+        fprintf(archivo, "%s\n", ax->nombre.c_str());
+        ax = ax->prox;
+    }
+    fclose(archivo);
+
+}
+
+//inserta los valores en la multilista
+void insertar_inventario(inventario** p, string c, string n) {
+    inventario* t = new inventario;
+    //validar codigo de inventario
+    t->codigo = c;
+    t->nombre = n;
+    t->sig = *p;
+    *p = t;
+
+
+}
+
+//lee archivo codigos sucursales en inventario y le agrega a la multilista los valores
+void abrir_inventario(inventario** p) {
+#pragma warning(disable : 4996);
+    FILE* archivo;
+    archivo = fopen("codigos sucursales en inventario.txt", "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+
+    char linea1[256], linea2[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL) {
+        //
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+        //
+        string linea1String(linea1);
+        string linea2String(linea2);
+        //************
+        insertar_inventario(p, linea1String, linea2String);
+
+    }
+
+    fclose(archivo);
+
+}
+
 // MENU DE MANTENIMIENTO SUCURSALES
 void mantenimiento_sucursales_inventario() {
     string a, b, c, d;
     inventario* p = NULL;
     sucursal* y = NULL;
     int op = -1;
-    //abrir_sucursales(&y);
-    //abrir_sucursales_en_inventario(&p, y);
+    abrir_sucursales(&y);
+    insertar_codigos_en_archivo_inventario(y);
+    abrir_inventario(&p);
     while (op != 0) {
         int m = -1;
         system("cls");
@@ -566,8 +609,7 @@ void mantenimiento_sucursales_inventario() {
         cout << "\t\t\t1.2.7 Mantenimiento de sucursales/inventario\n";
         cout << "\t----------------------------------------------------------------\n\n\n";
         cout << "Seleccione primero una de las siguientes sucursales para poder acceder a su inventario: \n";
-        p->codigo = "hola";
-        cout << p->codigo;
+        mostrar_sucursales_inventario(p);
         cout << "\n";
         cout << "1.2.7.1 Seleccionar sucursal \n";
         cout << "0. VOLVER MENU ANTERIOR \n";
@@ -800,6 +842,11 @@ void mantenimiento_sucursales() {
         system("pause");
     }
 }
+
+
+
+//*************************************************************************************************************************************
+
 
 // FACTURACION
 
