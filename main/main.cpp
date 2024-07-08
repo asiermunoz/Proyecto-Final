@@ -41,6 +41,10 @@ struct inventario {
 struct personas {
     string cedula;
     string nombre;
+    string direccion;
+    string correo;
+    string telefono;
+    string ciudad;
     personas* prox;
 };
 
@@ -1029,11 +1033,15 @@ int validar_cedula_personas(personas* p, string x) {
     }
     return 0;
 }
-void insertar_persona(personas** y, string c, string n) {
+void insertar_persona(personas** y, string c, string n, string direccion, string correo, string telefono, string ciudad) {
     personas* t = new personas;
     if (!validar_cedula_personas(*y, c)) {
         t->cedula = c;
         t->nombre = n;
+        t->direccion = direccion;
+        t->correo = correo;
+        t->telefono = telefono;
+        t->ciudad = ciudad;
         
         t->prox = *y;
         *y = t;
@@ -1042,14 +1050,14 @@ void insertar_persona(personas** y, string c, string n) {
 void mostrar_lista_personas(personas* y) {
     personas* t = y;
     cout << "\n\n\t\Personas";
-    cout << "\n------------------------------------------------------\n";
-    cout << "cedula\t\t\tnombre";
-    cout << "\n------------------------------------------------------\n";
+    cout << "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    cout << "cedula\t\t\tnombre\t\t\tdireccion\t\t\tcorreo\t\t\t\t telefono \t\t ciudad";
+    cout << "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
     while (t) {
-        cout << t->cedula << "\t\t" << t->nombre << "\n";
+        cout << t->cedula << "\t\t" << t->nombre << "\t\t" << t->direccion << "\t\t" << t->correo << "\t\t" << t->telefono << "\t\t" << t->ciudad << "\n";
         t = t->prox;
     }
-    cout << "\n-------------------------------------------------------\n";
+    cout << "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 }
 void eliminar_persona(personas** y, string x) {
     personas* ax = *y, * h = ax;
@@ -1076,16 +1084,29 @@ void abrir_personas(personas** p) {
     archivo = fopen("Personas.txt", "r");
     if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
 
-    char linea1[256], linea2[256];
+    char linea1[256], linea2[256], linea3[256], linea4[256], linea5[256], linea6[256];
     while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
-        fgets(linea2, sizeof(linea2), archivo) != NULL) {
+        fgets(linea2, sizeof(linea2), archivo) != NULL &&
+        fgets(linea3, sizeof(linea3), archivo) != NULL &&
+        fgets(linea4, sizeof(linea4), archivo) != NULL &&
+        fgets(linea5, sizeof(linea5), archivo) != NULL &&
+        fgets(linea6, sizeof(linea6), archivo) != NULL) {
+
         linea1[strcspn(linea1, "\n")] = '\0';
         linea2[strcspn(linea2, "\n")] = '\0';
+        linea3[strcspn(linea3, "\n")] = '\0';
+        linea4[strcspn(linea4, "\n")] = '\0';
+        linea5[strcspn(linea5, "\n")] = '\0';
+        linea6[strcspn(linea6, "\n")] = '\0';
 
         string linea1String(linea1);
         string linea2String(linea2);
+        string linea3String(linea3);
+        string linea4String(linea4);
+        string linea5String(linea5);
+        string linea6String(linea6);
 
-        insertar_persona(p, linea1String, linea2String);
+        insertar_persona(p, linea1String, linea2String, linea3String, linea4String, linea5String, linea6String);
 
     }
 
@@ -1105,6 +1126,10 @@ void guardar_personas(personas* p) {
     while (ax) {
         fprintf(archivo, "%s\n", ax->cedula.c_str());
         fprintf(archivo, "%s\n", ax->nombre.c_str());
+        fprintf(archivo, "%s\n", ax->direccion.c_str());
+        fprintf(archivo, "%s\n", ax->correo.c_str());
+        fprintf(archivo, "%s\n", ax->telefono.c_str());
+        fprintf(archivo, "%s\n", ax->ciudad.c_str());
         
         ax = ax->prox;
     }
@@ -1130,11 +1155,59 @@ int consultar_nombre(personas* y, string x) {
     }
     return 0;
 }
-void modificar_nombre(personas** y, string x, string n) {
+void modificar_nombre(personas** y, string x, string nombre) {
     personas* ax = *y;
     while (ax) {
         if (ax->cedula == x) {
-            ax->nombre = n;
+            ax->nombre = nombre;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
+void modificar_direccion(personas** y, string x, string direccion) {
+    personas* ax = *y;
+    while (ax) {
+        if (ax->cedula == x) {
+            ax->direccion = direccion;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
+void modificar_correo(personas** y, string x, string correo) {
+    personas* ax = *y;
+    while (ax) {
+        if (ax->cedula == x) {
+            ax->correo = correo;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
+void modificar_telefono(personas** y, string x, string telefono) {
+    personas* ax = *y;
+    while (ax) {
+        if (ax->cedula == x) {
+            ax->telefono = telefono;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
+void modificar_ciudad(personas** y, string x, string ciudad) {
+    personas* ax = *y;
+    while (ax) {
+        if (ax->cedula == x) {
+            ax->ciudad = ciudad;
             break;
         }
         else {
@@ -1147,13 +1220,14 @@ void modificar_nombre(personas** y, string x, string n) {
 void mantenimiento_personas() {
     int op = -1;
     string x, y, z, a;
+    string nombre, direccion, correo, telefono, ciudad;
     personas* p = NULL;
     abrir_personas(&p);
     while (op != 0) {
         int m = -1;
         system("cls");
         cout << "\t----------------------------------------------------------------\n";
-        cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+        cout << "\t\t\tSISTEMA DE MANTENIMIENTO DE PERSONAS\n";
         cout << "\t----------------------------------------------------------------\n";
         cout << "\t\t\t1.1. Mantenimiento de Personas\n";
         cout << "\t----------------------------------------------------------------\n\n\n";
@@ -1174,14 +1248,22 @@ void mantenimiento_personas() {
             getline(cin, x);
             if (validar_cedula_personas(p, x) == 0) {
                 cout << "ingrese el nombre y Apellido (Xxxx Xxxx): ";
-                getline(cin, y);
-                insertar_persona(&p, x, y);
+                getline(cin, nombre);
+                cout << "ingrese la direccion: ";
+                getline(cin, direccion);
+                cout << "ingrese el correo (example@example.com): ";
+                getline(cin, correo);
+                cout << "ingrese el telefono: ";
+                getline(cin, telefono);
+                cout << "ingrese la ciudad: ";
+                getline(cin, ciudad);
+                insertar_persona(&p, x, nombre, direccion, correo, telefono, ciudad);
                 guardar_personas(p);
             }
             else { cout << "la cedula ya existe \n\n"; }
             break;
         case 2:
-            cout << "ingrese el cedula: ";
+            /*cout << "ingrese el cedula: ";
             getline(cin, x);
             if (validar_cedula_personas(p, x) == 1) {
                 cout << "ingrese el nuevo nombre: ";
@@ -1189,7 +1271,99 @@ void mantenimiento_personas() {
                 modificar_nombre(&p, x, y);
                 guardar_personas(p);
             }
-            else { cout << "la cedula no existe \n\n"; }
+            else { cout << "la cedula no existe \n\n"; }*/
+            while (m != 0) {
+                system("cls");
+                cout << "\t----------------------------------------------------------------\n";
+                cout << "\t\t\tSISTEMA DE MANTENIMIENTO DE PERSONAS\n";
+                cout << "\t----------------------------------------------------------------\n";
+                cout << "\t\t\t1.3. Mantenimiento de Personas (MODIFICAR)\n";
+                cout << "\t----------------------------------------------------------------\n\n";
+                cout << "1.1.1 Cambiar Nombre \n";
+                cout << "1.1.2 Cambiar Direccion \n";
+                cout << "1.1.3 Cambiar Correo \n";
+                cout << "1.1.4 Cambiar Telefono \n";
+                cout << "1.1.5 Cambiar Ciudad \n";
+                cout << "0. VOLVER MENU ANTERIOR \n";
+                cout << "Elige una opcion: ";
+                cin >> m;
+                cin.ignore();
+
+
+                switch (m) {
+                case 1:
+                    cout << "indique la cedula que quiere modificar: ";
+                    getline(cin, x);
+                    if (validar_cedula_personas(p, x) == 1) {
+                        cout << "indique el nuevo nombre: ";
+                        getline(cin, y);
+                        modificar_nombre(&p, x, y);
+                        guardar_personas(p);
+                        mostrar_lista_personas(p);
+                    }
+                    else {
+                        cout << "la cedula ingresado no es valido\n\n";
+                    }
+                    break;
+                case 2:
+                    cout << "indique la cedula que quiere modificar: ";
+                    getline(cin, x);
+                    if (validar_cedula_personas(p, x) == 1) {
+                        cout << "indique la nueva direccion: ";
+                        getline(cin, y);
+                        modificar_direccion(&p, x, y);
+                        guardar_personas(p);
+                        mostrar_lista_personas(p);
+                    }
+                    else {
+                        cout << "la cedula ingresado no es valido\n\n";
+                    }
+                    break;
+                case 3:
+                    cout << "indique la cedula que quiere modificar: ";
+                    getline(cin, x);
+                    if (validar_cedula_personas(p, x) == 1) {
+                        cout << "indique el nuevo estado: ";
+                        getline(cin, y);
+                        modificar_correo(&p, x, y);
+                        guardar_personas(p);
+                        mostrar_lista_personas(p);
+                    }
+                    else {
+                        cout << "la cedula ingresado no es valido\n\n";
+                    }
+                    break;
+                case 4:
+                    cout << "indique la cedula que quiere modificar: ";
+                    getline(cin, x);
+                    if (validar_cedula_personas(p, x) == 1) {
+                        cout << "indique el nuevo telefono: ";
+                        getline(cin, y);
+                        modificar_telefono(&p, x, y);
+                        guardar_personas(p);
+                        mostrar_lista_personas(p);
+                    }
+                    else {
+                        cout << "la cedula ingresado no es valido\n\n";
+                    }
+                    break;
+                case 5:
+                    cout << "indique la cedula que quiere modificar: ";
+                    getline(cin, x);
+                    if (validar_cedula_personas(p, x) == 1) {
+                        cout << "indique la nueva ciudad: ";
+                        getline(cin, y);
+                        modificar_ciudad(&p, x, y);
+                        guardar_personas(p);
+                        mostrar_lista_personas(p);
+                    }
+                    else {
+                        cout << "la cedula ingresado no es valido\n\n";
+                    }
+                    break;
+                }
+                system("pause");
+            }
             break;
         case 3:
             cout << "ingrese la cedula a eliminar : ";
