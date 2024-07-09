@@ -4,6 +4,7 @@ Mikel Munoz 31307510
 Samuel Sangroni
 */
 
+#pragma warning(disable : 4996);
 #include <iostream>
 #include <string>
 #include<string.h>
@@ -14,6 +15,9 @@ struct producto {
     string codigo;
     string nombre;
     string descripcion;
+    string cantidad;
+    string min;
+    string precio;
     producto* prox;
 };
 struct sucursal {
@@ -24,21 +28,8 @@ struct sucursal {
     string telefono;
     string direccion;
     sucursal* prox;
-};
-struct stock {
-    int valor;
-    string codigo;
-    string cantidad;
-    string min;
-    string precio;
-    stock* prox;
-};
-struct inventario {
-    int valor;
-    string codigo;
-    string nombre;
-    stock* aba;
-    inventario* sig;
+    producto* aba;
+
 };
 struct personas {
     string cedula;
@@ -49,8 +40,27 @@ struct personas {
     string ciudad;
     personas* prox;
 };
+struct detalle{
+    string codigo;
+    string cantidad;
+    int precio;
+    detalle* prox;
+};
+struct factura {
+    string facturas;
+    string cedula;
+    string fecha;
+    int monto;
+    factura* prox;
+    detalle* aba;
+    
+};
 
-
+char* convertir_string_a_char_puntero(string str) {
+    char* cstr = new char[100];
+    strcpy(cstr, str.c_str());
+    return cstr;
+}
 
 
 //FUNCIONES DE MANTENIMINETO DE PRODUCTO
@@ -522,48 +532,26 @@ void modificar_direccion_sucursales(sucursal** y, string x, string n) {
         }
     }
 }
-//*************************************************************************************************************************************
+void archivo_nuevo(string x) {
+    FILE* archivo;
+    char* y = convertir_string_a_char_puntero(x);
+    strcat(y, ".txt");
+    archivo = fopen(y, "w");
+    if (!archivo)
+    {
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
 
+    }
+    fclose(archivo);
+}
+//*************************************************************************************************************************************
 
 
 //FUNCIONES DE INVENTARIO
 //*************************************************************************************************************************************
-int validar_codigo_inventario(inventario* p, string x) {
-    while (p) {
-        if (p->codigo == x) {
-            return 1;
-        }
-        p = p->sig;
-    }
-    return 0;
-}
-int validar_codigo_producto_en_stock(inventario* p,string a, string x) {
-    // a codigo de sucursal
-    // x codigo de producto a buscar
-    stock* ax = NULL;
-    int c = 0;
-    while (p) {
-        if (p->codigo == a) {
-            ax = p->aba;
-            c = 1;
-        }
-        p = p->sig;
-    }
-    if (c == 1) {
-        while (ax) {
-            if (ax->codigo == x) {
-                return 1;
-            }
-            ax->prox;
-        }
-    }
-    return 0;
-}
-char* convertir_string_a_char_puntero(string str) {
-    char* cstr = new char[100];
-    strcpy(cstr, str.c_str());
-    return cstr;
-}
+
+//funciona
 void crear_archivo_producto(string y, string a, string b, string c, string d) {
     FILE* archivo;
     char* x = convertir_string_a_char_puntero(y);
@@ -578,14 +566,11 @@ void crear_archivo_producto(string y, string a, string b, string c, string d) {
 
     fclose(archivo);
 }
-
-
-//insertar producto nuevo en el archivo
 void producto_nuevo_archivo(string nombre, string a, string b, string c, string d) {
     FILE* archivo;
     char* x = convertir_string_a_char_puntero(nombre);
     strcat(x, ".txt");
-    archivo = fopen(x, "a");
+    archivo = fopen(x, "w");
     if (!archivo)
     {
         cout << "Error al abrir archivo\n";
@@ -600,40 +585,58 @@ void producto_nuevo_archivo(string nombre, string a, string b, string c, string 
     
     fclose(archivo);
 }
+void mostrar_codigo_sucursales(sucursal* p) {
+    while (p) {
+        cout << p->codigo << endl;
+        p = p->prox;
+    }
+}
+sucursal* posicion_sucursal(sucursal* p, string codigo) {
+    while (p) {
+        if (p->codigo == codigo)
+            return p;
+        p = p->prox;
+    }
+}
 
-
-//inserta el stock en cada aba
-void insertar_stock_en_sucursal(inventario** p, string codigo_sucursal, string codigo, string existencia, string min, string precio) {
-    inventario* ax = *p;
-    stock* m;
-    stock* t = new stock;
+//revisar no funciona
+void mostrar_inventario(sucursal* p) {
+    if(p->aba != NULL){
+        producto* x = p->aba;
+        while (x) {
+            cout << x->codigo;
+            cout << endl;
+            cout << x->cantidad;
+            cout << endl;
+            cout << x->min;
+            cout << endl;
+            cout << x->precio;
+            cout << "\n\n";
+            x = x->prox;
+        }
+    }
+}
+void insertar_producto_en_sucursal(sucursal** p, string codigo, string existencia, string min, string precio) {
+    sucursal* ax = *p;
+    producto* t = new producto;
     t->codigo = codigo;
     t->cantidad = existencia;
     t->min = min;
     t->precio = precio;
+    t->prox = NULL;
 
-    while (ax->codigo != codigo_sucursal) { ax = ax->sig; }
-    if (ax->codigo == codigo_sucursal) {
-        if (ax->aba == NULL) {
-            ax->aba = t;
-            t->prox = NULL;
+    producto* m = ax->aba;
+    if (ax->aba == NULL) {
+        ax->aba = t;
+    }
+    else {
+        while (m->prox != NULL) {
+            m = m->prox;
         }
-        else {
-            m = ax->aba;
-            while (m) {
-                if (m->prox == NULL) {
-                    m->prox = t;
-                    t->prox = NULL;
-                }
-                m = m->prox;
-            }
-        }
+        m->prox = t;
     }
 }
-
-
-//lee archivo de nombre codigo sucursal.txt y la inserta en la multilista
-void abrir_archivo_stock(inventario** p, string codigo) {
+void abrir_archivo_producto(sucursal** p, string codigo) {
 #pragma warning(disable : 4996);
     FILE* archivo;
     char* x = convertir_string_a_char_puntero(codigo);
@@ -654,89 +657,18 @@ void abrir_archivo_stock(inventario** p, string codigo) {
         string linea3String(linea3);
         string linea4String(linea4);
 
-        //insete el stock en la multilista inventario
-        insertar_stock_en_sucursal(p, codigo, linea1String, linea2String, linea3String, linea4String);
+        insertar_producto_en_sucursal(p, linea1String, linea2String, linea3String, linea4String);
     }
 
     fclose(archivo);
 }
-
-
-//mete todos los productos a sus respectivas sucursales
-void insertar_stock_todos(inventario** p) {
-    inventario* ax = *p;
-    string codigo;
-    while (ax) {
-        codigo = ax->codigo;
-        abrir_archivo_stock(p, codigo);
-        ax = ax->sig;
-    }
-}
-
-//mostrar solo codigo de sucursales
-void mostrar_sucursales_inventario(inventario* p) {
+void asignar_productos_a_sucursales(sucursal* p) {
     while (p) {
-        cout << p->codigo << endl;
-        p = p->sig;
+        //leer archivo codigosucursal.txt y asignarle todo a ax
+        abrir_archivo_producto(&p, p->codigo);
+        p = p->prox;
     }
 }
-
-// recibe lista de sucursales y agrega a otro archivo codigo y nombre (inventario)
-void insertar_codigos_en_archivo_inventario(sucursal* y) {
-    sucursal* ax = y;
-    FILE* archivo;
-    archivo = fopen("codigos sucursales en inventario.txt", "w");
-    if (!archivo){
-        cout << "Error al abrir archivo\n";
-        exit(EXIT_FAILURE);
-    }
-
-    fflush(archivo);
-    while (ax) {
-        fprintf(archivo, "%s\n", ax->codigo.c_str());
-        fprintf(archivo, "%s\n", ax->nombre.c_str());
-        ax = ax->prox;
-    }
-    fclose(archivo);
-
-}
-
-//inserta los valores en la multilista
-void insertar_inventario(inventario** p, string c, string n) {
-    inventario* t = new inventario;
-    //validar codigo de inventario
-    t->codigo = c;
-    t->nombre = n;
-    t->sig = *p;
-    *p = t;
-
-
-}
-
-//lee archivo codigos sucursales en inventario y le agrega a la multilista los valores
-void abrir_inventario(inventario** p) {
-#pragma warning(disable : 4996);
-    FILE* archivo;
-    archivo = fopen("codigos sucursales en inventario.txt", "r");
-    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
-
-    char linea1[256], linea2[256];
-    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
-        fgets(linea2, sizeof(linea2), archivo) != NULL) {
-        linea1[strcspn(linea1, "\n")] = '\0';
-        linea2[strcspn(linea2, "\n")] = '\0';
-        string linea1String(linea1);
-        string linea2String(linea2);
-
-        insertar_inventario(p, linea1String, linea2String);
-
-    }
-
-    fclose(archivo);
-
-}
-
-// eliminar producto del stock
 //*************************************************************************************************************************************
 
 
@@ -745,12 +677,12 @@ void abrir_inventario(inventario** p) {
 void mantenimiento_sucursales_inventario() {
     string a, b, c, d, e;
     char* z;
-    inventario* p = NULL;
-    sucursal* y = NULL;
+    sucursal* p = NULL;
     int op = -1;
-    abrir_sucursales(&y);
-    insertar_codigos_en_archivo_inventario(y);
-    abrir_inventario(&p);
+    abrir_sucursales(&p);
+    sucursal* ax;
+    //asigne los productos a cada sucursal
+    asignar_productos_a_sucursales(p);
     while (op != 0) {
         int m = -1;
         system("cls");
@@ -760,7 +692,7 @@ void mantenimiento_sucursales_inventario() {
         cout << "\t\t\t1.2.7 Mantenimiento de sucursales/inventario\n";
         cout << "\t----------------------------------------------------------------\n\n\n";
         cout << "Seleccione primero una de las siguientes sucursales para poder acceder a su inventario: \n";
-        mostrar_sucursales_inventario(p);
+        mostrar_codigo_sucursales(p);
         cout << "\n";
         cout << "1.2.7.1 Seleccionar sucursal \n";
         cout << "0. VOLVER MENU ANTERIOR \n";
@@ -772,18 +704,18 @@ void mantenimiento_sucursales_inventario() {
         case 1:
             cout << "ingrese la sucursal: ";
             getline(cin, a);
-            if (validar_codigo_inventario(p, a)) {
+            if (validar_codigo_sucursales(p, a)) {
                 string nombre;
-                string codigo = a;
-                while (y) {
-                    if (y->codigo == codigo) {
-                        nombre = y->nombre;
+                while (p) {
+                    if (p->codigo == a) {
+                        nombre = p->nombre;
                         break;
                     }
-                    y = y->prox;
+                    p = p->prox;
                 }
                 while (m != 0) {
                     system("cls");
+                    ax = posicion_sucursal(p, a);
                     cout << "\t----------------------------------------------------------------\n";
                     cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
                     cout << "\t----------------------------------------------------------------\n";
@@ -803,37 +735,29 @@ void mantenimiento_sucursales_inventario() {
 
                     switch (m) {
                     case 1:
+                        
                         cout << "ingrese codigo del producto: ";
                         getline(cin, b);
-
                         cout << "ingrese existencia del producto: ";
                         getline(cin, c);
                         cout << "ingrese la existencia minima del producto: ";
                         getline(cin, d);
                         cout << "ingrese el precio del producto: ";
                         getline(cin, e);
+                        insertar_producto_en_sucursal(&ax, b, c, d, e);
                         producto_nuevo_archivo(a, b, c, d, e);
-                        /*if (!validar_codigo_producto_en_stock(p, a, b)) { //NO FUNCIONA
-
-                        }
-                        else {
-                            cout << "ese producto ya existe" << "\n\n";
-                        }*/
+                       
                         break;
                     case 2:
                         cout << "ingrese el codigo de producto a eliminar: ";
                         getline(cin, b);
-                        if (validar_codigo_producto_en_stock(p, a, b)) {
-                        }
-                        else {
-                            cout << "el producto no existe" << "\n\n";
-                        }
+                        
                         break;
                     case 3:
 
                         break;
                     case 4:
-
+                        mostrar_inventario(ax);
                         break;
                     }
                     system("pause");
@@ -886,6 +810,7 @@ void mantenimiento_sucursales() {
                 cout << "ingrese el direccion: "; getline(cin, f);
                 insertar_sucursal(&p, a, b, c, d, e, f);
                 guardar_sucursales(p);
+                //crear_archivo_producto(a, )
             }
             else { cout << "el codigo ya existe \n\n"; }
             break;
@@ -1454,8 +1379,12 @@ void mantenimiento() {
         }
     }
 };
-void facturacion_submenu(char tienda[256], char persona[256]) {
+void facturacion_submenu(string tienda, string persona) {
     int op = -1;
+    personas* m = NULL;
+    sucursal* y = NULL;
+    abrir_personas(&m);
+    abrir_sucursales(&y);
     while (op != 0) {
         system("cls");
         cout << "\t----------------------------------------------------------------\n";
@@ -1472,11 +1401,14 @@ void facturacion_submenu(char tienda[256], char persona[256]) {
         cout << "0. VOLVER MENU ANTERIOR\n\n";
         cout << "Elige una opcion: ";
         cin >> op;
-
+        cin.ignore();
 
 
         switch (op) {
         case 1:
+            //REVISAR PORQUE NO FUNCIONA
+            abrir_archivo_producto(&y, tienda);
+            mostrar_inventario(y);
             break;
 
         case 2:
@@ -1488,11 +1420,19 @@ void facturacion_submenu(char tienda[256], char persona[256]) {
         case 4:
             break;
         }
+        system("pause");
     }
 };
 void facturacion() {
     int op = -1;
-    char tienda[256], persona[256];
+    int c = 0;
+    string cedula;
+    string codigo;
+    personas* m = NULL;
+    sucursal* y = NULL;
+    abrir_personas(&m);
+    abrir_sucursales(&y);
+    
     while (op != 0) {
         system("cls");
         cout << "\t----------------------------------------------------------------\n";
@@ -1507,22 +1447,41 @@ void facturacion() {
         cout << "0. VOLVER MENU ANTERIOR\n\n";
         cout << "Elige una opcion: ";
         cin >> op;
-
+        cin.ignore();
 
 
         switch (op) {
         case 1:
-            //valid entry de la tienda
+            cout << "introduce el codigo de la tienda: "; getline(cin, codigo);
+            if (consultar_codigo_sucursal(y, codigo)) {
+                c += 1;
+            }
+            else {
+                cout << "No se encontro la tienda\n\n";
+            }
             break;
 
         case 2:
-            //valid entry de la persona
+            cout << "introduce la cedula del cliente: "; getline(cin, cedula);
+            if (consultar_cedula(m, cedula)) {
+                c += 1;
+            }
+            else {
+                cout << "No se encontro la cedula del cliente\n\n";
+            }
             break;
 
         case 3:
-            facturacion_submenu(tienda, persona);
+            if (c >= 2) {
+                facturacion_submenu(codigo, cedula);
+            }
+            else {
+                cout << "Debes de completar las dos opciones anteriores para seguir\n\n";
+            }
+            
             break;
         }
+        system("pause");
     }
 };
 void submenu_de_reportes_clientes(char cedula[256]) {
@@ -1540,6 +1499,7 @@ void submenu_de_reportes_clientes(char cedula[256]) {
         cout << "0. VOLVER MENU ANTERIOR\n\n";
         cout << "Elige una opcion: ";
         cin >> op;
+        cin.ignore();
 
         switch (op) {
         case 1:
@@ -1551,6 +1511,7 @@ void submenu_de_reportes_clientes(char cedula[256]) {
         case 3:
             break;
         }
+        system("pause");
     }
 }
 void submenu_de_reportes_tienda(char tienda[256]) {
@@ -1568,6 +1529,7 @@ void submenu_de_reportes_tienda(char tienda[256]) {
         cout << "0. VOLVER MENU ANTERIOR\n\n";
         cout << "Elige una opcion: ";
         cin >> op;
+        cin.ignore();
 
         switch (op) {
         case 1:
@@ -1579,6 +1541,7 @@ void submenu_de_reportes_tienda(char tienda[256]) {
         case 3:
             break;
         }
+        system("pause");
     }
 }
 void submenu_de_reportes_mercadeo() {
@@ -1598,6 +1561,7 @@ void submenu_de_reportes_mercadeo() {
         cout << "0. VOLVER MENU ANTERIOR\n\n";
         cout << "Elige una opcion: ";
         cin >> op;
+        cin.ignore();
 
         switch (op) {
         case 1:
@@ -1615,6 +1579,7 @@ void submenu_de_reportes_mercadeo() {
         case 5:
             break;
         }
+        system("pause");
     }
 }
 void reportes() {
@@ -1633,7 +1598,7 @@ void reportes() {
         cout << "0. VOLVER MENU ANTERIOR\n\n";
         cout << "Elige una opcion: ";
         cin >> op;
-
+        cin.ignore();
 
 
         switch (op) {
@@ -1653,6 +1618,7 @@ void reportes() {
             submenu_de_reportes_mercadeo();
             break;
         }
+        system("pause");
     }
 }
 
