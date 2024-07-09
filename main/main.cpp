@@ -26,6 +26,7 @@ struct sucursal {
     sucursal* prox;
 };
 struct stock {
+    int valor;
     string codigo;
     string cantidad;
     string min;
@@ -33,6 +34,7 @@ struct stock {
     stock* prox;
 };
 struct inventario {
+    int valor;
     string codigo;
     string nombre;
     stock* aba;
@@ -738,7 +740,6 @@ void abrir_inventario(inventario** p) {
 //*************************************************************************************************************************************
 
 
-
 // MENU DE MANTENIMIENTO SUCURSALES
 //*************************************************************************************************************************************
 void mantenimiento_sucursales_inventario() {
@@ -823,7 +824,6 @@ void mantenimiento_sucursales_inventario() {
                         cout << "ingrese el codigo de producto a eliminar: ";
                         getline(cin, b);
                         if (validar_codigo_producto_en_stock(p, a, b)) {
-
                         }
                         else {
                             cout << "el producto no existe" << "\n\n";
