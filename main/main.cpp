@@ -599,25 +599,26 @@ sucursal* posicion_sucursal(sucursal* p, string codigo) {
     }
 }
 
-//revisar no funciona
-void mostrar_inventario(sucursal* p) {
-    if(p->aba != NULL){
-        producto* x = p->aba;
-        while (x) {
-            cout << x->codigo;
-            cout << endl;
-            cout << x->cantidad;
-            cout << endl;
-            cout << x->min;
-            cout << endl;
-            cout << x->precio;
-            cout << "\n\n";
-            x = x->prox;
-        }
+//revisar ya que funciona mas o menos
+void mostrar_inventario(producto* p) {
+    producto* x = p;
+    while (x != NULL) {
+        cout << x->codigo;
+        cout << endl;
+        cout << x->cantidad;
+        cout << endl;
+        cout << x->min;
+        cout << endl;
+        cout << x->precio;
+        cout << "\n\n";
+        x = x->prox;
     }
 }
-void insertar_producto_en_sucursal(sucursal** p, string codigo, string existencia, string min, string precio) {
-    sucursal* ax = *p;
+
+//revisar porque al insertar en la sucursal borra todos los productos
+//volver a ver la funcion de insertar y compararla con la de personas
+//ver bien como manejar la lista enlazada de productos
+void insertar_producto_en_sucursal(producto** p, string codigo, string existencia, string min, string precio) {
     producto* t = new producto;
     t->codigo = codigo;
     t->cantidad = existencia;
@@ -625,18 +626,20 @@ void insertar_producto_en_sucursal(sucursal** p, string codigo, string existenci
     t->precio = precio;
     t->prox = NULL;
 
-    producto* m = ax->aba;
-    if (ax->aba == NULL) {
-        ax->aba = t;
+    if (*p == NULL) {
+        *p = t; // Actualiza el puntero inicial si la lista está vacía
     }
     else {
+        producto* m = *p;
         while (m->prox != NULL) {
             m = m->prox;
         }
-        m->prox = t;
+        m = t;
     }
 }
-void abrir_archivo_producto(sucursal** p, string codigo) {
+
+//si funcionan
+void abrir_archivo_producto(producto** p, string codigo) {
 #pragma warning(disable : 4996);
     FILE* archivo;
     char* x = convertir_string_a_char_puntero(codigo);
@@ -657,12 +660,13 @@ void abrir_archivo_producto(sucursal** p, string codigo) {
         string linea3String(linea3);
         string linea4String(linea4);
 
+    
         insertar_producto_en_sucursal(p, linea1String, linea2String, linea3String, linea4String);
     }
 
     fclose(archivo);
 }
-void asignar_productos_a_sucursales(sucursal* p) {
+void asignar_productos_a_sucursales(producto* p) {
     while (p) {
         //leer archivo codigosucursal.txt y asignarle todo a ax
         abrir_archivo_producto(&p, p->codigo);
@@ -677,11 +681,11 @@ void asignar_productos_a_sucursales(sucursal* p) {
 void mantenimiento_sucursales_inventario() {
     string a, b, c, d, e;
     char* z;
-    sucursal* p = NULL;
+    producto* p = NULL;
+    sucursal* q = NULL;
+    sucursal* ax = NULL;
     int op = -1;
-    abrir_sucursales(&p);
-    sucursal* ax;
-    //asigne los productos a cada sucursal
+    abrir_sucursales(&q);
     asignar_productos_a_sucursales(p);
     while (op != 0) {
         int m = -1;
@@ -692,7 +696,7 @@ void mantenimiento_sucursales_inventario() {
         cout << "\t\t\t1.2.7 Mantenimiento de sucursales/inventario\n";
         cout << "\t----------------------------------------------------------------\n\n\n";
         cout << "Seleccione primero una de las siguientes sucursales para poder acceder a su inventario: \n";
-        mostrar_codigo_sucursales(p);
+        mostrar_codigo_sucursales(q);
         cout << "\n";
         cout << "1.2.7.1 Seleccionar sucursal \n";
         cout << "0. VOLVER MENU ANTERIOR \n";
@@ -704,7 +708,7 @@ void mantenimiento_sucursales_inventario() {
         case 1:
             cout << "ingrese la sucursal: ";
             getline(cin, a);
-            if (validar_codigo_sucursales(p, a)) {
+            if (validar_codigo_sucursales(q, a)) {
                 string nombre;
                 while (p) {
                     if (p->codigo == a) {
@@ -715,7 +719,8 @@ void mantenimiento_sucursales_inventario() {
                 }
                 while (m != 0) {
                     system("cls");
-                    ax = posicion_sucursal(p, a);
+                    ax = posicion_sucursal(q, a);
+                    abrir_archivo_producto(&p, a);
                     cout << "\t----------------------------------------------------------------\n";
                     cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
                     cout << "\t----------------------------------------------------------------\n";
@@ -744,8 +749,9 @@ void mantenimiento_sucursales_inventario() {
                         getline(cin, d);
                         cout << "ingrese el precio del producto: ";
                         getline(cin, e);
-                        insertar_producto_en_sucursal(&ax, b, c, d, e);
-                        producto_nuevo_archivo(a, b, c, d, e);
+                        //no se esta guardando lo insertado
+                        insertar_producto_en_sucursal(&p, b, c, d, e);
+
                        
                         break;
                     case 2:
@@ -757,7 +763,7 @@ void mantenimiento_sucursales_inventario() {
 
                         break;
                     case 4:
-                        mostrar_inventario(ax);
+                        mostrar_inventario(p);
                         break;
                     }
                     system("pause");
@@ -1407,8 +1413,8 @@ void facturacion_submenu(string tienda, string persona) {
         switch (op) {
         case 1:
             //REVISAR PORQUE NO FUNCIONA
-            abrir_archivo_producto(&y, tienda);
-            mostrar_inventario(y);
+            //abrir_archivo_producto(&y, tienda);
+            //mostrar_inventario(y);
             break;
 
         case 2:
