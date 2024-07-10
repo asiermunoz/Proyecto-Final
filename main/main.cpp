@@ -566,8 +566,9 @@ void crear_archivo_producto(string y, string a, string b, string c, string d) {
 
     fclose(archivo);
 }
-void producto_nuevo_archivo(string nombre, string a, string b, string c, string d) {
+void producto_guardar(producto *p, string nombre) {
     FILE* archivo;
+    producto* ax = p;
     char* x = convertir_string_a_char_puntero(nombre);
     strcat(x, ".txt");
     archivo = fopen(x, "w");
@@ -577,11 +578,14 @@ void producto_nuevo_archivo(string nombre, string a, string b, string c, string 
         exit(EXIT_FAILURE);
 
     }
-        fprintf(archivo, "%s\n", a.c_str());
-        fprintf(archivo, "%s\n", b.c_str());
-        fprintf(archivo, "%s\n", c.c_str());
-        fprintf(archivo, "%s\n", d.c_str());
-        
+    fflush(archivo);
+    while (ax){
+        fprintf(archivo, "%s\n", ax->codigo.c_str());
+        fprintf(archivo, "%s\n", ax->cantidad.c_str());
+        fprintf(archivo, "%s\n", ax->min.c_str());
+        fprintf(archivo, "%s\n", ax->precio.c_str());
+        ax = ax->prox;
+    }
     
     fclose(archivo);
 }
@@ -598,26 +602,40 @@ sucursal* posicion_sucursal(sucursal* p, string codigo) {
         p = p->prox;
     }
 }
+void mostrar_inventario(producto* p, string codigo) {
+#pragma warning(disable : 4996);
+    FILE* archivo;
+    char* x = convertir_string_a_char_puntero(codigo);
+    strcat(x, ".txt");
+    archivo = fopen(x, "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
 
-//revisar ya que funciona mas o menos
-void mostrar_inventario(producto* p) {
-    producto* x = p;
-    while (x != NULL) {
-        cout << x->codigo;
-        cout << endl;
-        cout << x->cantidad;
-        cout << endl;
-        cout << x->min;
-        cout << endl;
-        cout << x->precio;
-        cout << "\n\n";
-        x = x->prox;
+    char linea1[256], linea2[256], linea3[256], linea4[256];
+
+    cout << "\n\n\t\INVENTARIO";
+    cout << "\n-----------------------------------------------------------------------------------------------------------------\n";
+    cout << "Codigo\t\t\tcantidad\t\texistencia minima\t\tprecio";
+    cout << "\n-----------------------------------------------------------------------------------------------------------------\n";
+
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL && fgets(linea3, sizeof(linea3), archivo) != NULL &&
+        fgets(linea4, sizeof(linea4), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+        linea3[strcspn(linea3, "\n")] = '\0';
+        linea4[strcspn(linea4, "\n")] = '\0';
+        string linea1String(linea1);
+        string linea2String(linea2);
+        string linea3String(linea3);
+        string linea4String(linea4);
+        cout << linea1String << "\t\t\t";
+        cout << linea2String << "\t\t\t";
+        cout << linea3String << "\t\t\t\t";
+        cout << linea4String << "\n";
     }
-}
 
-//revisar porque al insertar en la sucursal borra todos los productos
-//volver a ver la funcion de insertar y compararla con la de personas
-//ver bien como manejar la lista enlazada de productos
+    fclose(archivo);
+}
 void insertar_producto_en_sucursal(producto** p, string codigo, string existencia, string min, string precio) {
     producto* t = new producto;
     t->codigo = codigo;
@@ -634,11 +652,9 @@ void insertar_producto_en_sucursal(producto** p, string codigo, string existenci
         while (m->prox != NULL) {
             m = m->prox;
         }
-        m = t;
+        m->prox = t;
     }
 }
-
-//si funcionan
 void abrir_archivo_producto(producto** p, string codigo) {
 #pragma warning(disable : 4996);
     FILE* archivo;
@@ -659,7 +675,6 @@ void abrir_archivo_producto(producto** p, string codigo) {
         string linea2String(linea2);
         string linea3String(linea3);
         string linea4String(linea4);
-
     
         insertar_producto_en_sucursal(p, linea1String, linea2String, linea3String, linea4String);
     }
@@ -749,8 +764,8 @@ void mantenimiento_sucursales_inventario() {
                         getline(cin, d);
                         cout << "ingrese el precio del producto: ";
                         getline(cin, e);
-                        //no se esta guardando lo insertado
                         insertar_producto_en_sucursal(&p, b, c, d, e);
+                        producto_guardar(p, a);
 
                        
                         break;
@@ -763,7 +778,7 @@ void mantenimiento_sucursales_inventario() {
 
                         break;
                     case 4:
-                        mostrar_inventario(p);
+                        mostrar_inventario(p, a);
                         break;
                     }
                     system("pause");
