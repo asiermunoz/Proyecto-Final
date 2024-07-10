@@ -550,23 +550,15 @@ void archivo_nuevo(string x) {
 
 //FUNCIONES DE INVENTARIO
 //*************************************************************************************************************************************
-
-//funciona
-void crear_archivo_producto(string y, string a, string b, string c, string d) {
+void crear_archivo_producto(string y) {
     FILE* archivo;
     char* x = convertir_string_a_char_puntero(y);
     strcat(x, ".txt");
     archivo = fopen(x, "w");
     if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
-    fprintf(archivo, "%s\n", a.c_str());
-    fprintf(archivo, "%s\n", b.c_str());
-    fprintf(archivo, "%s\n", c.c_str());
-    fprintf(archivo, "%s\n", d.c_str());
-
-
     fclose(archivo);
 }
-void producto_guardar(producto *p, string nombre) {
+void guardar_producto_inventario(producto *p, string nombre) {
     FILE* archivo;
     producto* ax = p;
     char* x = convertir_string_a_char_puntero(nombre);
@@ -590,9 +582,10 @@ void producto_guardar(producto *p, string nombre) {
     fclose(archivo);
 }
 void mostrar_codigo_sucursales(sucursal* p) {
-    while (p) {
-        cout << p->codigo << endl;
-        p = p->prox;
+    sucursal* ax = p;
+    while (ax) {
+        cout << ax->codigo << endl;
+        ax = ax->prox;
     }
 }
 sucursal* posicion_sucursal(sucursal* p, string codigo) {
@@ -603,38 +596,17 @@ sucursal* posicion_sucursal(sucursal* p, string codigo) {
     }
 }
 void mostrar_inventario(producto* p, string codigo) {
-#pragma warning(disable : 4996);
-    FILE* archivo;
-    char* x = convertir_string_a_char_puntero(codigo);
-    strcat(x, ".txt");
-    archivo = fopen(x, "r");
-    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
-
-    char linea1[256], linea2[256], linea3[256], linea4[256];
-
-    cout << "\n\n\t\INVENTARIO";
-    cout << "\n-----------------------------------------------------------------------------------------------------------------\n";
-    cout << "Codigo\t\t\tcantidad\t\texistencia minima\t\tprecio";
-    cout << "\n-----------------------------------------------------------------------------------------------------------------\n";
-
-    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
-        fgets(linea2, sizeof(linea2), archivo) != NULL && fgets(linea3, sizeof(linea3), archivo) != NULL &&
-        fgets(linea4, sizeof(linea4), archivo) != NULL) {
-        linea1[strcspn(linea1, "\n")] = '\0';
-        linea2[strcspn(linea2, "\n")] = '\0';
-        linea3[strcspn(linea3, "\n")] = '\0';
-        linea4[strcspn(linea4, "\n")] = '\0';
-        string linea1String(linea1);
-        string linea2String(linea2);
-        string linea3String(linea3);
-        string linea4String(linea4);
-        cout << linea1String << "\t\t\t";
-        cout << linea2String << "\t\t\t";
-        cout << linea3String << "\t\t\t\t";
-        cout << linea4String << "\n";
+    producto* t = p;
+    cout << "\n\n\t\Productos";
+    cout << "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    cout << "codigo\t\t\cantidad\t\t\existencia min\t\t\precio";
+    cout << "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    while (t) {
+        cout << t->codigo << "\t\t" << t->cantidad << "\t\t\t" << t->min << "\t\t\t" << t->precio << "\n";
+        t = t->prox;
     }
+    cout << "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 
-    fclose(archivo);
 }
 void insertar_producto_en_sucursal(producto** p, string codigo, string existencia, string min, string precio) {
     producto* t = new producto;
@@ -688,13 +660,66 @@ void asignar_productos_a_sucursales(producto* p) {
         p = p->prox;
     }
 }
-//*************************************************************************************************************************************
+void eliminar_inventario(producto** y, string x) {
+    producto* ax = *y;
+    producto* h = ax;
 
-
+    while (ax) {
+        if ((*y)->codigo == x) {
+            *y = ax->prox;
+            delete ax;
+            break;
+        }
+        if (ax->codigo == x) {
+            h->prox = ax->prox;
+            delete ax;
+            break;
+        }
+        else {
+            h = ax;
+            ax = ax->prox;
+        }
+    }
+}
+void modificar_cantidad_productos_inventario(producto** p, string codigo, string m) {
+producto* ax = *p;
+     while (ax) {
+        if (ax->codigo == codigo) {
+            ax->cantidad = m;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
+void modificar_existenciamin_productos_inventario(producto** p, string codigo, string m) {
+    producto* ax = *p;
+    while (ax) {
+        if (ax->codigo == codigo) {
+            ax->min = m;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
+void modificar_precio_productos_inventario(producto** p, string codigo, string m) {
+    producto* ax = *p;
+    while (ax) {
+        if (ax->codigo == codigo) {
+            ax->precio = m;
+            break;
+        }
+        else {
+            ax = ax->prox;
+        }
+    }
+}
 // MENU DE MANTENIMIENTO SUCURSALES
-//*************************************************************************************************************************************
 void mantenimiento_sucursales_inventario() {
-    string a, b, c, d, e;
+    string a, b, c, d, e, x, y;
     char* z;
     producto* p = NULL;
     sucursal* q = NULL;
@@ -704,6 +729,7 @@ void mantenimiento_sucursales_inventario() {
     asignar_productos_a_sucursales(p);
     while (op != 0) {
         int m = -1;
+        int g = -1;
         system("cls");
         cout << "\t----------------------------------------------------------------\n";
         cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
@@ -723,19 +749,20 @@ void mantenimiento_sucursales_inventario() {
         case 1:
             cout << "ingrese la sucursal: ";
             getline(cin, a);
-            if (validar_codigo_sucursales(q, a)) {
+            if (validar_codigo_sucursales(q, a) == 1) {
                 string nombre;
-                while (p) {
-                    if (p->codigo == a) {
-                        nombre = p->nombre;
+                while (q) {
+                    if (q->codigo == a) {
+                        nombre = q->nombre;
                         break;
                     }
-                    p = p->prox;
+                    q = q->prox;
                 }
+                abrir_archivo_producto(&p, a);
                 while (m != 0) {
                     system("cls");
                     ax = posicion_sucursal(q, a);
-                    abrir_archivo_producto(&p, a);
+                    g = -1;
                     cout << "\t----------------------------------------------------------------\n";
                     cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
                     cout << "\t----------------------------------------------------------------\n";
@@ -747,38 +774,101 @@ void mantenimiento_sucursales_inventario() {
                     cout << "1.2.7.1.2 Eliminar productos \n";
                     cout << "1.2.7.1.3 modificar Inventario \n";
                     cout << "1.2.7.1.4 Mostrar Productos \n";
+                    op = 0;
                     cout << "0. VOLVER MENU ANTERIOR \n";
-
                     cout << "Elige una opcion: ";
                     cin >> m;
                     cin.ignore();
 
                     switch (m) {
                     case 1:
-                        
                         cout << "ingrese codigo del producto: ";
                         getline(cin, b);
-                        cout << "ingrese existencia del producto: ";
-                        getline(cin, c);
-                        cout << "ingrese la existencia minima del producto: ";
-                        getline(cin, d);
-                        cout << "ingrese el precio del producto: ";
-                        getline(cin, e);
-                        insertar_producto_en_sucursal(&p, b, c, d, e);
-                        producto_guardar(p, a);
-
-                       
+                        if (validar_codigo_productos(p, b) == 0) {
+                            cout << "ingrese existencia del producto: ";
+                            getline(cin, c);
+                            cout << "ingrese la existencia minima del producto: ";
+                            getline(cin, d);
+                            cout << "ingrese el precio del producto: ";
+                            getline(cin, e);
+                            insertar_producto_en_sucursal(&p, b, c, d, e);
+                            guardar_producto_inventario(p, a);
+                        }
+                        else {
+                            cout << "el producto ya existe \n\n";
+                        }
                         break;
                     case 2:
                         cout << "ingrese el codigo de producto a eliminar: ";
                         getline(cin, b);
-                        
+                        eliminar_inventario(&p, b);
                         break;
                     case 3:
+                        while (g != 0) {
+                            system("cls");
+                            cout << "\t----------------------------------------------------------------\n";
+                            cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+                            cout << "\t----------------------------------------------------------------\n";
+                            cout << "\t\t\t1.1. Mantenimiento de sucursales (MODIFICAR)\n";
+                            cout << "\t----------------------------------------------------------------\n\n";
+                            cout << "1.1.1 Cambiar Cantidad \n";
+                            cout << "1.1.2 Cambiar Existencia Minima \n";
+                            cout << "1.1.3 Cambiar Precio \n";
+                            cout << "0. VOLVER MENU ANTERIOR \n";
+                            cout << "Elige una opcion: ";
+                            cin >> g;
+                            cin.ignore();
 
+
+                            switch (g) {
+                            case 1:
+                                cout << "indique el codigo que quiere modificar: ";
+                                getline(cin, x);
+                                if (validar_codigo_productos(p, x) == 1) {
+                                    cout << "indique la nueva existencia: ";
+                                    getline(cin, y);
+                                    modificar_cantidad_productos_inventario(&p, x, y);
+                                    guardar_producto_inventario(p, x);
+                                }
+                                else {
+                                    cout << "el codigo ingresado no es valido\n\n";
+                                }
+                                break;
+                            case 2:
+                                cout << "indique el codigo que quiere modificar: ";
+                                getline(cin, x);
+                                if (validar_codigo_productos(p, x) == 1) {
+                                    cout << "indique la nueva existencia minima: ";
+                                    getline(cin, y);
+                                    modificar_existenciamin_productos_inventario(&p, x, y);
+                                    guardar_producto_inventario(p, x);
+                                }
+                                else {
+                                    cout << "el codigo ingresado no es valido\n\n";
+                                }
+                                break;
+                            case 3:
+                                cout << "indique el codigo que quiere modificar: ";
+                                getline(cin, x);
+                                if (validar_codigo_productos(p, x) == 1) {
+                                    cout << "indique el nuevo precio: ";
+                                    getline(cin, y);
+                                    modificar_precio_productos_inventario(&p, x, y);
+                                    guardar_producto_inventario(p, x);
+                                }
+                                else {
+                                    cout << "el codigo ingresado no es valido\n\n";
+                                }
+                                break;
+                            
+                            }
+                            system("pause");
+                        }
                         break;
                     case 4:
                         mostrar_inventario(p, a);
+                        guardar_producto_inventario(p, a);
+
                         break;
                     }
                     system("pause");
@@ -787,6 +877,7 @@ void mantenimiento_sucursales_inventario() {
             else {
                 cout << "codigo invalido" << "\n\n";
             }
+            
             break;
 
 
@@ -831,7 +922,7 @@ void mantenimiento_sucursales() {
                 cout << "ingrese el direccion: "; getline(cin, f);
                 insertar_sucursal(&p, a, b, c, d, e, f);
                 guardar_sucursales(p);
-                //crear_archivo_producto(a, )
+                crear_archivo_producto(a);
             }
             else { cout << "el codigo ya existe \n\n"; }
             break;
@@ -1210,15 +1301,6 @@ void mantenimiento_personas() {
             else { cout << "la cedula ya existe \n\n"; }
             break;
         case 2:
-            /*cout << "ingrese el cedula: ";
-            getline(cin, x);
-            if (validar_cedula_personas(p, x) == 1) {
-                cout << "ingrese el nuevo nombre: ";
-                getline(cin, y);
-                modificar_nombre(&p, x, y);
-                guardar_personas(p);
-            }
-            else { cout << "la cedula no existe \n\n"; }*/
             while (m != 0) {
                 system("cls");
                 cout << "\t----------------------------------------------------------------\n";
