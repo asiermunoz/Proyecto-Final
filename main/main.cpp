@@ -47,12 +47,10 @@ struct detalle{
     detalle* prox;
 };
 struct factura {
-    string facturas;
-    string cedula;
+    string numf;
     string fecha;
     int monto;
     factura* prox;
-    detalle* aba;
     
 };
 
@@ -61,7 +59,25 @@ char* convertir_string_a_char_puntero(string str) {
     strcpy(cstr, str.c_str());
     return cstr;
 }
-
+string convertir_int_a_string(int x) {
+    string cadena_string = to_string(x);
+    return cadena_string;
+}
+char* convertir_int_a_char_puntero(int x) {
+    string str = convertir_int_a_string(x);
+    char* cadena = convertir_string_a_char_puntero(str);
+    return cadena;
+}
+char convertir_int_a_char(int numero) {
+    char cadena[256];
+    sprintf(cadena, "%d", numero);
+    return cadena[256];
+}
+int convertir_string_a_int(string cadena) {
+    int n;
+    n = stoi(cadena);
+    return n;
+}
 
 //FUNCIONES DE MANTENIMINETO DE PRODUCTO
 //*************************************************************************************************************************************
@@ -905,7 +921,7 @@ void mantenimiento_sucursales() {
         cout << "1.2.3 Eliminar \n";
         cout << "1.2.4 Consulta por codigo \n";
         cout << "1.2.5 Consulta por direccion \n";
-        cout << "1.2.6 Mostrar todos los productos \n";
+        cout << "1.2.6 Mostrar todos las sucursales \n";
         cout << "1.2.7 Inventario \n";
         cout << "0. VOLVER MENU ANTERIOR \n";
         cout << "Elige una opcion: "; cin >> op;
@@ -1442,12 +1458,352 @@ void mantenimiento_personas() {
 
 
 // FACTURACION
+string buscar_persona(personas* m, string cedula) {
+    string nombre;
+    while (m) {
+        if (m->cedula == cedula)
+            nombre = m->nombre;
+        m = m->prox;
+    }
+    return nombre;
+}
+int generar_factura() {
+    // Generar un número aleatorio entre 100000 y 999999
+    return 100000 + rand() % 900000;
+}
+void crear_archivo_cedula(string y) {
+    FILE* archivo;
+    char* x = convertir_string_a_char_puntero(y);
+    strcat(x, ".txt");
+    archivo = fopen(x, "w");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+    fclose(archivo);
+}
+void insertar_en_facturas(factura** f, string fact, int monto) {
+    factura* t = new factura;
+    t->numf = fact;
+    t->monto = monto;
+    t->prox = *f;
+    *f = t;
+}
+void abrir_archivo_cedula(factura **f, string cedula) {
+#pragma warning(disable : 4996);
+    FILE* archivo;
+    char* x = convertir_string_a_char_puntero(cedula);
+    strcat(x, ".txt");
+    archivo = fopen(x, "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+    int monto;
+    char linea1[256], linea2[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+        string linea1String(linea1);
+        string linea2String(linea2);
+        monto = convertir_string_a_int(linea2String);
+        insertar_en_facturas(f, linea1String, monto);
+    }
+}
+void mostrar_resumen_facturas(factura* f, string cedula) {
+    cout << "\n------------------------------------------------------------------------\n";
+    cout << "cedula clinete: " << cedula;
+    cout << "\n------------------------------------------------------------------------\n";
+    cout << "numero de factura \tmonto total";
+    cout << "\n------------------------------------------------------------------------\n";
+    while (f) {
+        cout << f->numf << "\t\t\t" << f->monto << "\n";
+        
+        f = f->prox;
+    }
+    cout << "\n------------------------------------------------------------------------\n";
+    
+}
+void crear_archivo_factura(int y) {
+    FILE* archivo;
+    char* x = convertir_int_a_char_puntero(y);
+    strcat(x, ".txt");
+    archivo = fopen(x, "w");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+    fclose(archivo);
+}
+void insertar_en_detalle_factura(detalle** d, string codigo, string cantidad, int precio) {
+    detalle* t = new detalle;
+    t->codigo = codigo;
+    t->cantidad = cantidad;
+    t->precio = precio;
+    t->prox = NULL;
+
+    if (*d == NULL) {
+        *d = t; // Actualiza el puntero inicial si la lista está vacía
+    }
+    else {
+        detalle* m = *d;
+        while (m->prox != NULL) {
+            m = m->prox;
+        }
+        m->prox = t;
+    }
+}
+void abrir_archivo_facturas(detalle** d, int factura) {
+    FILE* archivo;
+    char* nombre = convertir_int_a_char_puntero(factura);
+    strcat(nombre, ".txt");
+    archivo = fopen(nombre, "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+
+    char linea1[256], linea2[256], linea3[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL &&
+        fgets(linea3, sizeof(linea2), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+        linea3[strcspn(linea3, "\n")] = '\0';
+
+        string linea1String(linea1);
+        string linea2String(linea2);
+        string linea3String(linea3);
+        int precio;
+        precio = convertir_string_a_int(linea3String);
 
 
+        insertar_en_detalle_factura(d, linea1String, linea2String, precio);
+
+    };
+    fclose(archivo);
+}
+void abrir_archivo_facturas_r(detalle** d, int factura) {
+    FILE* archivo;
+    char* nombre = convertir_int_a_char_puntero(factura);
+    strcat(nombre, ".txt");
+    archivo = fopen(nombre, "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+
+    char linea1[256], linea2[256], linea3[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL &&
+        fgets(linea3, sizeof(linea2), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+        linea3[strcspn(linea3, "\n")] = '\0';
+
+        string linea1String(linea1);
+        string linea2String(linea2);
+        string linea3String(linea3);
+        int precio;
+        precio = convertir_string_a_int(linea3String);
+
+    };
+    fclose(archivo);
+}
+int buscar_precio_producto(producto* p, string codigo) {
+    string x;
+    int precio;
+    while (p) {
+        if (p->codigo == codigo) {
+            x = p->precio;
+        }
+        p = p->prox;
+    }
+    precio = convertir_string_a_int(x);
+    return precio;
+}
+int calcular_precio_total(string cantidad, int precio) {
+    int cant, total;
+    cant = convertir_string_a_int(cantidad);
+    total = cant * precio;
+    return total;
+}
+void guardar_detalle_en_factura(detalle* d, int factura) {
+    //factura es el nombre del archivo
+    char* nombre;
+    nombre = convertir_int_a_char_puntero(factura);
+    strcat(nombre, ".txt");
+    detalle* ax = d;
+    FILE* archivo;
+    archivo = fopen(nombre, "w");
+    if (!archivo)
+    {
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
+    }
+    fflush(archivo);
+    while (ax) {
+        fprintf(archivo, "%s\n", ax->codigo.c_str());
+        fprintf(archivo, "%s\n", ax->cantidad.c_str());
+        fprintf(archivo, "%i\n", ax->precio);
 
 
+        ax = ax->prox;
+    }
+    fclose(archivo);
+}
+void mostrar(int factura, string cedula, string nombrepersona) {
+    char* nombre;
+    nombre = convertir_int_a_char_puntero(factura);
+    strcat(nombre, ".txt");
+    FILE* archivo;
+    archivo = fopen(nombre, "r");
+    if (!archivo)
+    {
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
+    }
+    cout << "\n\n\t\ 2)Factura nro:" << factura;
+    cout << "\n------------------------------------------------------------------------\n";
+    cout << "cliente: " << nombrepersona << "\t\t" << "cedula: " << cedula;
+    cout << "\n------------------------------------------------------------------------\n";
+    cout << "codigo\t\t\tcantidad\t\t\tprecio";
+    cout << "\n------------------------------------------------------------------------\n";
+    char linea1[256], linea2[256], linea3[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL &&
+        fgets(linea3, sizeof(linea2), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+        linea3[strcspn(linea3, "\n")] = '\0';
 
+        string linea1String(linea1);
+        string linea2String(linea2);
+        string linea3String(linea3);
+
+        cout << linea1String << "\t\t\t" << linea2String << "\t\t\t\t" << linea3String << "\n";
+    }
+    cout << "\n------------------------------------------------------------------------\n";
+    fclose(archivo);
+}
+void mostrar_factura_especifica(detalle* d, string cedula, string nombrepersona, int numerofactura) {
+    detalle* t = d;
+    cout << "\n\n\t\ 2)Factura nro:" << numerofactura;
+    cout << "\n------------------------------------------------------------------------\n";
+    cout << "cliente: " << nombrepersona << "\t\t" << "cedula: " << cedula;
+    cout << "\n------------------------------------------------------------------------\n";
+    cout << "codigo\t\t\tcantidad\t\t\tprecio";
+    cout << "\n------------------------------------------------------------------------\n";
+    while (t) {
+        cout << t->codigo << "\t\t\t" << t->cantidad << "\t\t\t\t" << t->precio << "\n";
+        t = t->prox;
+    }
+    cout << "\n------------------------------------------------------------------------\n";
+}
+string mostrar_num_factura(string cedula) {
+    FILE* archivo;
+    char* x = convertir_string_a_char_puntero(cedula);
+    strcat(x, ".txt");
+    archivo = fopen(x, "r");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+    char linea1[256];
+    string a;
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        string linea1String(linea1);
+        a = linea1String;
+    }
+    return a;
+    fclose(archivo);
+    
+    
+}
+void eliminar_producto_factura(detalle** d, string codigo) {
+    detalle* ax = *d, * h = ax;
+    while (ax) {
+        if ((*d)->codigo == codigo) {
+            *d = ax->prox;
+            delete ax;
+            break;
+        }
+        if (ax->codigo == codigo) {
+            h->prox = ax->prox;
+            delete ax;
+            break;
+        }
+        else {
+            h = ax;
+            ax = ax->prox;
+        }
+    }
+}
+int monto_total_factura(detalle* d) {
+    detalle* ax = d;
+    int c = 0;
+    while (ax) {
+        c += ax->precio;
+        ax = ax->prox;
+    }
+    return c;
+}
+void agregar_facturas_a_cedulatxt(string cedula, int factura, int monto) {
+    FILE* archivo;
+    char* x = convertir_string_a_char_puntero(cedula);
+    strcat(x, ".txt");
+    archivo = fopen(x, "a");
+    if (!archivo) { cout << "Error al abrir archivo\n"; exit(EXIT_FAILURE); }
+    while(archivo){
+        fprintf(archivo, "%i\n", factura);
+        fprintf(archivo, "%i\n", monto);
+    }
+    fclose(archivo);
+}
+int validar_factura_por_cedula(factura *f, string factura){
+    while (f) {
+        if (f->numf == factura)
+            return 1;
+        f = f->prox;
+    }
+    return 0;
+}
+void mostrar_todas_las_facturas(string cedula) {
+    char* nombre;
+    nombre = convertir_string_a_char_puntero(cedula);
+    strcat(nombre, ".txt");
+    FILE* archivo;
+    archivo = fopen(nombre, "r");
+    if (!archivo)
+    {
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
+    }
+    char linea1[256], linea2[256];
+    while (fgets(linea1, sizeof(linea1), archivo) != NULL &&
+        fgets(linea2, sizeof(linea2), archivo) != NULL) {
+        linea1[strcspn(linea1, "\n")] = '\0';
+        linea2[strcspn(linea2, "\n")] = '\0';
+
+        string linea1String(linea1);
+        string linea2String(linea2);
+        cout << linea1String << "\n";
+    }
+}
+void guardar_factura_en_cedula(int factura, string cedula) {
+    char* nombre;
+    nombre = convertir_string_a_char_puntero(cedula);
+    strcat(nombre, ".txt");
+    FILE* archivo;
+    archivo = fopen(nombre, "a");
+    if (!archivo)
+    {
+        cout << "Error al abrir archivo\n";
+        exit(EXIT_FAILURE);
+    }
+    fprintf(archivo, "%i\n", factura);
+    
+}
 //*************************************************************************************************************************************
+
+void lista_persona_cedula(personas* m) {
+    personas* t = m;
+    while (t) {
+        cout << t->cedula << ": " << t->nombre << "\n";
+        t = t->prox;
+    }
+}
+void lista_sucursales_codigo(sucursal* y) {
+    sucursal* t = y;
+    while (t) {
+        cout << t->codigo << ": " << t->nombre << "\n";
+        t = t->prox;
+    }
+}
 
 // SUB MENUS -------------------------------------------------------------------------------------------
 void mantenimiento() {
@@ -1482,21 +1838,33 @@ void mantenimiento() {
         }
     }
 };
-void facturacion_submenu(string tienda, string persona) {
+void facturacion_submenu(string tienda, string cedula) {
     int op = -1;
+    int z = -1;
+    int x = 0;
+    int factu;
+    string a, b, c, g;
     personas* m = NULL;
     sucursal* y = NULL;
+    producto* p = NULL;
+    detalle* d = NULL;
+    factura* f = NULL;
     abrir_personas(&m);
     abrir_sucursales(&y);
+    asignar_productos_a_sucursales(p);
+    abrir_archivo_producto(&p, tienda);
+    abrir_archivo_cedula(&f, cedula);
+    // aca se puede crear factura si se desea, usar la funcion de crear factura y agregar a cedula (no es necesaria)
     while (op != 0) {
+        z = -1;
         system("cls");
-        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\n------------------------------------------------------------------------------------------\n";
         cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
-        cout << "\t----------------------------------------------------------------\n";
-        cout << "\tTIENDA" << "[" << tienda << "]\t\t\t\t\t" << "PERSONA" << "[" << persona << "]\t\n";
-        cout << "\t----------------------------------------------------------------\n";
+        cout << "\t\n------------------------------------------------------------------------------------------\n";
+        cout << "\tTIENDA" << "[" << tienda << "]\t\t\t\t\t" << "PERSONA" << "[" << cedula << ":  " << buscar_persona(m, cedula) << "]\t\n";
+        cout << "\t\n------------------------------------------------------------------------------------------\n";
         cout << "\t\t\t2. Facturacion\n";
-        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "\t\n------------------------------------------------------------------------------------------\n";
         cout << "2.1. Agregar producto\n";
         cout << "2.2. Mostrar factura\n";
         cout << "2.3. Eliminar factura\n";
@@ -1509,23 +1877,79 @@ void facturacion_submenu(string tienda, string persona) {
 
         switch (op) {
         case 1:
-            //REVISAR PORQUE NO FUNCIONA
-            //abrir_archivo_producto(&y, tienda);
-            //mostrar_inventario(y);
+            mostrar_todas_las_facturas(cedula);
+            cout << "\nque factura deseas usar: "; 
+            getline(cin, g);
+            if (validar_factura_por_cedula(f, g) == 1) {
+                abrir_archivo_facturas(&d, convertir_string_a_int(g));
+                while (z != 0) {
+                    system("cls");
+                    cout << "\t----------------------------------------------------------------\n";
+                    cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
+                    cout << "\t----------------------------------------------------------------\n";
+                    cout << "\t\t\t2.1 Carrito de Compras \t\t PERSONA" << "[" << cedula << "]" << "\n";
+                    cout << "\t----------------------------------------------------------------\n\n";
+                    mostrar_inventario(p, tienda);
+                    guardar_producto_inventario(p, tienda);
+                    cout << "1.1.1 Seleccionar Producto \n";
+                    cout << "0. VOLVER MENU ANTERIOR \n";
+                    cout << "Elige una opcion: ";
+                    cin >> z;
+                    cin.ignore();
+                    switch (z) {
+                    case 1:
+                        cout << "\ningrese el codigo del producto: ";
+                        getline(cin, a);
+                        if (validar_codigo_productos(p, a) == 1) {
+                            cout << "\ningrese la cantidad deseada: ";
+                            getline(cin, b);
+                            int precio = buscar_precio_producto(p, a);
+                            int total = 0;
+                            total = calcular_precio_total(b, precio);
+                            insertar_en_detalle_factura(&d, a, b, total);
+                            guardar_detalle_en_factura(d, convertir_string_a_int(g));
+                        }
+                        else {
+                            cout << "\nel codigo no es correcto \n";
+                        }
+                    }
+                    system("pause");
+                }
+            }
+            else {
+                cout << "error al seleccionar la factura";
+            }
             break;
 
         case 2:
+            mostrar_todas_las_facturas(cedula);
+            cout << "\nque factura deseas ver: "; 
+            getline(cin, g);
+            if (validar_factura_por_cedula(f, g) == 1) {
+                factu = convertir_string_a_int(g);
+                mostrar(factu, cedula, buscar_persona(m, cedula));
+            }
+            else { cout << "el numero de factura es incorrecto"; }
             break;
 
         case 3:
+            mostrar_todas_las_facturas(cedula);
+            cout << "\nque factura deseas usar: ";
+            getline(cin, g);
+            if (validar_factura_por_cedula(f, g) == 1) {
+                eliminar_producto_factura(&d, a);
+                guardar_detalle_en_factura(d, factu);
+            }
+            else { cout << "ese codigo es invalido"; }
             break;
 
         case 4:
+            mostrar_resumen_facturas(f, cedula);
             break;
         }
         system("pause");
     }
-};
+}
 void facturacion() {
     int op = -1;
     int c = 0;
@@ -1542,7 +1966,16 @@ void facturacion() {
         cout << "\t\t\tSISTEMA DE INVENTARIO Y FACTURACION\n";
         cout << "\t----------------------------------------------------------------\n";
         cout << "\t\t\t2. Facturacion\n";
-        cout << "\t----------------------------------------------------------------\n\n\n";
+        cout << "------------------------------------------------------------------------\n";
+        cout << "Personas\n";
+        cout << "------------------------------------------------------------------------\n";
+        lista_persona_cedula(m);
+        cout << "------------------------------------------------------------------------\n";
+        cout << "Tiendas\n";
+        cout << "------------------------------------------------------------------------\n";
+        lista_sucursales_codigo(y);
+        cout << "------------------------------------------------------------------------\n\n\n";
+        
         cout << "Debde de seleccionar las dos opciones para proceder al siguiente menu\n";
         cout << "2.1. Seleccionar tienda\n";
         cout << "2.2. Seleccionar cliente\n"; 
@@ -1569,6 +2002,7 @@ void facturacion() {
             if (consultar_cedula(m, cedula)) {
                 c += 1;
             }
+
             else {
                 cout << "No se encontro la cedula del cliente\n\n";
             }
@@ -1728,8 +2162,6 @@ void reportes() {
 //MAIN ------------------------------------------------------------------------------------------------
 int main() {
     int op = -1;
-
-
     while (op) {
         system("cls");
         cout << "\t----------------------------------------------------------------------\n";
